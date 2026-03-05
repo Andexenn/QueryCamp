@@ -45,19 +45,6 @@ export default function CodeEditor() {
           <div>{'}'}</div>
           <div style={{ color: 'var(--color-cta)' }}>|</div>
         </div>
-
-        {/* Floating Toolbar */}
-        <div style={{ position: 'absolute', top: '24px', right: '24px', background: 'var(--color-secondary)', borderRadius: '12px', padding: '8px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: 'var(--shadow-md)' }}>
-          <button className="btn-icon" style={{ padding: '8px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2.5 8.6L12 2l9.5 6.6V22H2.5z"/></svg> {/* Simulating wand */}
-          </button>
-          <button className="btn-icon" style={{ padding: '8px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-          <button className="btn-icon" style={{ padding: '8px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-5 5"/></svg>
-          </button>
-        </div>
       </div>
 
       {/* Variables variables pane */}
