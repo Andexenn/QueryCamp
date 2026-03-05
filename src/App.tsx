@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import Home from './pages/Home';
+import Chatbot from './pages/Chatbot';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState<'home' | 'chatbot'>('home');
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card bg-red-500">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        zIndex: 9999,
+        background: 'var(--color-primary)',
+        padding: '10px',
+        borderRadius: '8px',
+        border: '1px solid var(--color-border)',
+        boxShadow: 'var(--shadow-lg)',
+        display: 'flex',
+        gap: '10px'
+      }}>
+        <button 
+          className="btn-secondary" 
+          onClick={() => setCurrentPage('home')}
+          style={{ padding: '8px 16px', fontSize: '14px', background: currentPage === 'home' ? 'var(--color-secondary)' : 'transparent' }}
+        >
+          IDE View
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <button 
+          className="btn-secondary" 
+          onClick={() => setCurrentPage('chatbot')}
+          style={{ padding: '8px 16px', fontSize: '14px', background: currentPage === 'chatbot' ? 'var(--color-secondary)' : 'transparent' }}
+        >
+          Chat View
+        </button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+
+      {currentPage === 'home' ? <Home /> : <Chatbot />}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
