@@ -1,4 +1,0 @@
-1/ change color code editor
-2/ change the icon and connect to be 
-3/ store the tab to localstorage and URL hashes
-4/ keep the same content when sent the link 
