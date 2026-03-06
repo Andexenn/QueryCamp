@@ -1,62 +1,140 @@
+import { useState } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { graphql } from 'cm6-graphql'; 
+import { json } from '@codemirror/lang-json';
+import { FiX, FiPlus } from 'react-icons/fi'; // Removed unused icons for cleaner code
+
+// 1. Import tools for custom theming
+import { EditorView } from '@codemirror/view';
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { tags as t } from '@lezer/highlight';
+
+// 2. Define the Custom UI Theme
+const queryCampUITheme = EditorView.theme({
+  "&": {
+    color: "var(--color-text)",
+    backgroundColor: "transparent", 
+  },
+  "&.cm-focused": {
+    outline: "none", // Prevents default browser focus ring when clicking the editor
+  },
+  ".cm-content": {
+    caretColor: "var(--color-cta)", 
+  },
+  "&.cm-focused .cm-selectionBackground, ::selection": {
+    backgroundColor: "rgba(255, 255, 255, 0.1)", 
+  },
+  ".cm-gutters": {
+    backgroundColor: "transparent",
+    color: "var(--color-text-muted)",
+    borderRight: "none",
+  },
+  ".cm-activeLineGutter": {
+    backgroundColor: "transparent",
+    color: "var(--color-text)",
+  },
+  ".cm-activeLine": {
+    backgroundColor: "rgba(255, 255, 255, 0.03)", 
+  }
+}, { dark: true });
+
+// 3. Define the Custom Syntax Highlighting 
+const queryCampSyntax = HighlightStyle.define([
+  { tag: t.keyword, color: "#F472B6" },        
+  { tag: t.variableName, color: "#4ADE80" },   
+  { tag: t.propertyName, color: "#F8FAFC" },   
+  { tag: t.string, color: "#FBBF24" },         
+  { tag: t.number, color: "#FBBF24" },         
+  { tag: t.punctuation, color: "#94A3B8" },    
+  { tag: t.definition(t.name), color: "#4ADE80" }, 
+  { tag: t.typeName, color: "#F8FAFC" },       
+]);
+
+// Combine them into a single theme array
+const customTheme = [queryCampUITheme, syntaxHighlighting(queryCampSyntax)];
+
 
 export default function CodeEditor() {
+  const [query, setQuery] = useState(`query GetUserData($id: ID!) {
+  user(id: $id) {
+    id
+    username
+    email
+    posts {
+      title
+      content
+      createdAt
+    }
+  }
+}`);
+
+  const [variables, setVariables] = useState(`{
+  "id": "usr_982347102"
+}`);
+
   return (
-    <div style={{
+    <div style={{ 
+      // Removed className="card" to eliminate the inherited padding
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      backgroundColor: 'var(--color-primary)'
+      backgroundColor: 'var(--color-background)',
+      overflow: 'hidden',
+      borderRadius: 0,
+      margin: 0,
+      padding: 0, // Explicitly set to 0 just to be safe
+      border: '1px solid var(--color-border)',
     }}>
-      {/* Tabs */}
-      <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-background)' }}>
-        <div className="flex items-center" style={{ borderBottom: '2px solid var(--color-cta)', padding: '12px 16px', color: 'var(--color-text)', cursor: 'pointer', fontSize: '14px' }}>
+      {/* Query Editor Tabs Bar */}
+      <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)' }}>
+        {/* Active Tab */}
+        <div className="flex items-center" style={{ borderBottom: '2px solid var(--color-cta)', padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-text)', cursor: 'pointer', fontSize: '14px' }}>
           GetUserData.graphql
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: '12px', opacity: 0.5 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <FiX size={14} color="currentColor" style={{ marginLeft: 'var(--space-sm)', opacity: 0.5 }} />
         </div>
-        <div className="flex items-center" style={{ padding: '12px 16px', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '14px', borderLeft: '1px solid var(--color-border)' }}>
+        {/* Inactive Tab */}
+        <div className="flex items-center" style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '14px', borderLeft: '1px solid var(--color-border)' }}>
           UpdateProfile.graphql
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: '12px', opacity: 0.5 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <FiX size={14} color="currentColor" style={{ marginLeft: 'var(--space-sm)', opacity: 0.5 }} />
         </div>
-        <div className="flex items-center justify-center btn-icon" style={{ marginLeft: '16px', padding: '12px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </div>
-      </div>
-
-      {/* Editor Content */}
-      <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
-        {/* Line Numbers */}
-        <div style={{ padding: '16px 8px', color: 'var(--color-text-muted)', textAlign: 'right', fontSize: '14px', fontFamily: 'monospace', opacity: 0.5, lineHeight: 1.6 }}>
-          <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div>
-        </div>
-
-        {/* Code Area */}
-        <div style={{ padding: '16px', color: 'var(--color-text)', fontFamily: 'monospace', fontSize: '14px', lineHeight: 1.6, flex: 1 }}>
-          <div><span style={{ color: '#F472B6' }}>query</span> <span style={{ color: 'var(--color-cta)' }}>GetUserData</span>(<span style={{ color: '#38BDF8' }}>$id</span>: <span style={{ color: 'white' }}>ID!</span>) {'{'}</div>
-          <div style={{ paddingLeft: '16px' }}><span style={{ color: '#F472B6' }}>user</span>(id: <span style={{ color: '#38BDF8' }}>$id</span>) {'{'}</div>
-          <div style={{ paddingLeft: '32px' }}>id</div>
-          <div style={{ paddingLeft: '32px' }}>username</div>
-          <div style={{ paddingLeft: '32px' }}>email</div>
-          <div style={{ paddingLeft: '32px' }}>posts {'{'}</div>
-          <div style={{ paddingLeft: '48px' }}>title</div>
-          <div style={{ paddingLeft: '48px', color: '#F472B6' }}>content</div>
-          <div style={{ paddingLeft: '48px' }}>createdAt</div>
-          <div style={{ paddingLeft: '32px' }}>{'}'}</div>
-          <div style={{ paddingLeft: '16px' }}>{'}'}</div>
-          <div>{'}'}</div>
-          <div style={{ color: 'var(--color-cta)' }}>|</div>
+        <div className="flex items-center justify-center btn-icon" style={{ marginLeft: 'var(--space-lg)', padding: 'var(--space-md)' }}>
+          <FiPlus size={16} color="currentColor" />
         </div>
       </div>
 
-      {/* Variables variables pane */}
+      {/* Editor Content Area */}
+      <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ flex: 1, width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
+          <CodeMirror
+            value={query}
+            theme={customTheme}
+            onChange={(value) => setQuery(value)}
+            height="100%"
+            style={{ height: '100%', fontSize: '14px', fontFamily: "'Space Grotesk', monospace" }}
+            extensions={[graphql()]}
+          />
+        </div>
+      </div>
+
+      {/* Variables/Headers Pane */}
       <div style={{ height: '250px', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
-        <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)' }}>
-          <div style={{ padding: '12px 24px', color: 'var(--color-cta)', borderBottom: '2px solid var(--color-cta)', fontSize: '13px', fontWeight: 600 }}>VARIABLES</div>
-          <div style={{ padding: '12px 24px', color: 'var(--color-text-muted)', fontSize: '13px', fontWeight: 600 }}>HTTP HEADERS</div>
+        <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)' }}>
+          <div style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-cta)', borderBottom: '2px solid var(--color-cta)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>VARIABLES</div>
+          <div style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-text-muted)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>HTTP HEADERS</div>
         </div>
-        <div style={{ padding: '16px', fontFamily: 'monospace', fontSize: '14px', flex: 1, backgroundColor: 'var(--color-primary)' }}>
-          <div>{'{'}</div>
-          <div style={{ paddingLeft: '16px' }}><span style={{ color: '#FBBF24' }}>"id"</span>: <span style={{ color: '#FBBF24' }}>"usr_982347102"</span></div>
-          <div>{'}'}</div>
+        
+        {/* Variables Editor Area */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: 'var(--color-primary)' }}>
+          <div style={{ width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
+            <CodeMirror
+              value={variables}
+              theme={customTheme}
+              onChange={(value) => setVariables(value)}
+              height="100%"
+              style={{ height: '100%', fontSize: '13px', fontFamily: "'Space Grotesk', monospace" }}
+              extensions={[json()]}
+            />
+          </div>
         </div>
       </div>
     </div>
