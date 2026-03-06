@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { graphql } from 'cm6-graphql'; 
 import { json } from '@codemirror/lang-json';
@@ -54,23 +54,86 @@ const queryCampSyntax = HighlightStyle.define([
 const customTheme = [queryCampUITheme, syntaxHighlighting(queryCampSyntax)];
 
 
-export default function CodeEditor() {
-  const [query, setQuery] = useState(`query GetUserData($id: ID!) {
-  user(id: $id) {
-    id
-    username
-    email
-    posts {
-      title
-      content
-      createdAt
-    }
-  }
-}`);
+export interface TabData {
+  id: string;
+  name: string;
+  query: string;
+  variables: string;
+}
 
-  const [variables, setVariables] = useState(`{
-  "id": "usr_982347102"
-}`);
+const DEFAULT_TABS: TabData[] = [
+  {
+    id: 'tab-1',
+    name: 'GetUserData.graphql',
+    query: `query GetUserData($id: ID!) {\n  user(id: $id) {\n    id\n    username\n    email\n    posts {\n      title\n      content\n      createdAt\n    }\n  }\n}`,
+    variables: `{\n  "id": "usr_982347102"\n}`
+  },
+  {
+    id: 'tab-2',
+    name: 'UpdateProfile.graphql',
+    query: `mutation UpdateProfile($input: ProfileInput!) {\n  updateProfile(input: $input) {\n    id\n    username\n    updatedAt\n  }\n}`,
+    variables: `{\n  "input": {\n    "username": "new_name"\n  }\n}`
+  }
+];
+
+export default function CodeEditor() {
+  const [tabs, setTabs] = useState<TabData[]>(() => {
+    const saved = localStorage.getItem('qc_tabs');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error("Failed parsing tabs", e);
+      }
+    }
+    return DEFAULT_TABS;
+  });
+
+  const [activeTabId, setActiveTabId] = useState<string>(() => {
+    const saved = localStorage.getItem('qc_active_tab');
+    if (saved) return saved;
+    return DEFAULT_TABS[0].id;
+  });
+
+  // Keep localStorage in sync
+  useEffect(() => {
+    localStorage.setItem('qc_tabs', JSON.stringify(tabs));
+  }, [tabs]);
+
+  useEffect(() => {
+    localStorage.setItem('qc_active_tab', activeTabId);
+  }, [activeTabId]);
+
+  const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0];
+
+  const updateActiveTab = (updates: Partial<TabData>) => {
+    setTabs(prev => prev.map(t => t.id === activeTab.id ? { ...t, ...updates } : t));
+  };
+
+  const handleAddTab = () => {
+    const newId = crypto.randomUUID();
+    const newTab: TabData = {
+      id: newId,
+      name: `NewQuery.graphql`,
+      query: '# Write your GraphQL query here\n',
+      variables: '{\n  \n}'
+    };
+    setTabs([...tabs, newTab]);
+    setActiveTabId(newId);
+  };
+
+  const handleCloseTab = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (tabs.length === 1) return; // Prevent closing last tab
+    setTabs(prev => {
+      const remaining = prev.filter(t => t.id !== id);
+      if (activeTabId === id && remaining.length > 0) {
+        setActiveTabId(remaining[0].id);
+      }
+      return remaining;
+    });
+  };
 
   return (
     <div style={{ 
@@ -86,18 +149,40 @@ export default function CodeEditor() {
       border: '1px solid var(--color-border)',
     }}>
       {/* Query Editor Tabs Bar */}
-      <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)' }}>
-        {/* Active Tab */}
-        <div className="flex items-center" style={{ borderBottom: '2px solid var(--color-cta)', padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-text)', cursor: 'pointer', fontSize: '14px' }}>
-          GetUserData.graphql
-          <FiX size={14} color="currentColor" style={{ marginLeft: 'var(--space-sm)', opacity: 0.5 }} />
-        </div>
-        {/* Inactive Tab */}
-        <div className="flex items-center" style={{ padding: 'var(--space-md) var(--space-lg)', color: 'var(--color-text-muted)', cursor: 'pointer', fontSize: '14px', borderLeft: '1px solid var(--color-border)' }}>
-          UpdateProfile.graphql
-          <FiX size={14} color="currentColor" style={{ marginLeft: 'var(--space-sm)', opacity: 0.5 }} />
-        </div>
-        <div className="flex items-center justify-center btn-icon" style={{ marginLeft: 'var(--space-lg)', padding: 'var(--space-md)' }}>
+      <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)', overflowX: 'auto' }}>
+        {tabs.map(tab => (
+          <div 
+            key={tab.id}
+            onClick={() => setActiveTabId(tab.id)}
+            className="flex items-center" 
+            style={{ 
+              backgroundColor: activeTabId === tab.id ? 'var(--color-background)' : 'transparent',
+              borderBottom: activeTabId === tab.id ? '2px solid var(--color-cta)' : '2px solid transparent', 
+              padding: 'var(--space-md) var(--space-lg)', 
+              color: activeTabId === tab.id ? 'var(--color-text)' : 'var(--color-text-muted)', 
+              cursor: 'pointer', 
+              fontSize: '14px',
+              borderLeft: '1px solid var(--color-border)',
+              minWidth: 'max-content'
+            }}
+          >
+            {tab.name}
+            {tabs.length > 1 && (
+              <FiX 
+                size={14} 
+                color="currentColor" 
+                style={{ marginLeft: 'var(--space-sm)', opacity: 0.5 }} 
+                onClick={(e) => handleCloseTab(tab.id, e)}
+              />
+            )}
+          </div>
+        ))}
+        
+        <div 
+          className="flex items-center justify-center btn-icon" 
+          style={{ marginLeft: 'var(--space-sm)', padding: 'var(--space-md)' }}
+          onClick={handleAddTab}
+        >
           <FiPlus size={16} color="currentColor" />
         </div>
       </div>
@@ -106,9 +191,9 @@ export default function CodeEditor() {
       <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
         <div style={{ flex: 1, width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
           <CodeMirror
-            value={query}
+            value={activeTab.query}
             theme={customTheme}
-            onChange={(value) => setQuery(value)}
+            onChange={(value) => updateActiveTab({ query: value })}
             height="100%"
             style={{ height: '100%', fontSize: '14px', fontFamily: "'Space Grotesk', monospace" }}
             extensions={[graphql()]}
@@ -127,9 +212,9 @@ export default function CodeEditor() {
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: 'var(--color-primary)' }}>
           <div style={{ width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
             <CodeMirror
-              value={variables}
+              value={activeTab.variables}
               theme={customTheme}
-              onChange={(value) => setVariables(value)}
+              onChange={(value) => updateActiveTab({ variables: value })}
               height="100%"
               style={{ height: '100%', fontSize: '13px', fontFamily: "'Space Grotesk', monospace" }}
               extensions={[json()]}
