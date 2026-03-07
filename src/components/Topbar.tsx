@@ -28,12 +28,12 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
     }}>
       {/* Logo Area */}
       <div className="flex items-center gap-sm">
-        <h2 style={{ fontSize: '18px', margin: 0 }}>QueryCamp</h2>
+        <h2 style={{ fontSize: '20px', margin: 0 }}>QueryCamp</h2>
       </div>
 
       {/* Center Controls */}
-      <div className="flex items-center gap-md pl-md" style={{ paddingLeft: 'var(--space-md)' }}>
-        <div className="flex items-center input" style={{ padding: '8px 12px', borderRadius: '6px', flex: 1, maxWidth: '400px' }}>
+      <div className="flex items-center gap-md pl-md">
+        <div className="flex items-center input" style={{ padding: '10px 12px', borderRadius: '6px', flex: 1, maxWidth: '400px' }}>
           <FiLink size={16} color="var(--color-text-muted)" style={{ marginRight: '8px' }} />
           
           {/* Cập nhật input: Dùng value và onChange thay vì defaultValue */}
