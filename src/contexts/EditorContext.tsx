@@ -1,19 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-// 1. Data Types
-export interface TabData {
-  id: string;
-  name: string;
-  query: string;
-  variables: string;
-}
-
-export interface ApiResponse {
-  status: number | null;
-  timeMs: number | null;
-  data: any | null;
-  error?: string | null;
-}
+import type { TabData, ApiResponse } from '../types/editor';
+import { executeGraphQLQuery } from '../services/queryService';
 
 interface EditorContextType {
   tabs: TabData[];
@@ -38,13 +26,15 @@ export const DEFAULT_TABS: TabData[] = [
     id: generateId(),
     name: 'GetUserData.graphql',
     query: `query GetUserData($id: ID!) {\n  user(id: $id) {\n    id\n    username\n    email\n    posts {\n      title\n      content\n      createdAt\n    }\n  }\n}`,
-    variables: `{\n  "id": "usr_982347102"\n}`
+    variables: `{\n  "id": "usr_982347102"\n}`,
+    headers: `{\n  \n}`
   },
   {
     id: generateId(),
     name: 'UpdateProfile.graphql',
     query: `mutation UpdateProfile($input: ProfileInput!) {\n  updateProfile(input: $input) {\n    id\n    username\n    updatedAt\n  }\n}`,
-    variables: `{\n  "input": {\n    "username": "new_name"\n  }\n}`
+    variables: `{\n  "input": {\n    "username": "new_name"\n  }\n}`,
+    headers: `{\n  \n}`
   }
 ];
 
@@ -117,11 +107,23 @@ export function EditorProvider({ children }: { children: ReactNode }) {
 
   // --- Actions ---
   const addTab = () => {
+    let maxCounter = 0;
+    tabs.forEach(tab => {
+      const match = tab.name.match(/^Query(\d+)\.graphql$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxCounter) {
+          maxCounter = num;
+        }
+      }
+    });
+    
     const newTab: TabData = {
       id: generateId(),
-      name: `Query${tabs.length + 1}.graphql`,
+      name: `Query${maxCounter + 1}.graphql`,
       query: '# Write your GraphQL query here\n',
-      variables: '{\n  \n}'
+      variables: '{\n  \n}',
+      headers: '{\n  \n}'
     };
     setTabs([...tabs, newTab]);
     setActiveTabId(newTab.id);
@@ -159,55 +161,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     if (!activeTab || !activeTab.query.trim()) return;
 
     setResponse({ status: null, timeMs: null, data: null, error: null }); // Resetting state
-    const startTime = performance.now();
-
-    try {
-      // Parse variables if needed
-      let parsedVariables = {};
-      if (activeTab.variables.trim()) {
-         try {
-           parsedVariables = JSON.parse(activeTab.variables);
-         } catch (e) {
-           setResponse({
-             status: 400,
-             timeMs: performance.now() - startTime,
-             data: null,
-             error: "Invalid JSON in variables panel."
-           });
-           return;
-         }
-      }
-
-      const res = await fetch(endpointUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          query: activeTab.query,
-          variables: parsedVariables
-        })
-      });
-
-      const data = await res.json();
-      const timeMs = Math.round(performance.now() - startTime);
-
-      setResponse({
-        status: res.status,
-        timeMs,
-        data: data.data || data, // GraphQL usually puts results in .data
-        error: data.errors ? JSON.stringify(data.errors, null, 2) : res.ok ? null : "HTTP Error"
-      });
-
-    } catch (err: any) {
-      setResponse({
-        status: 0, // Network error
-        timeMs: Math.round(performance.now() - startTime),
-        data: null,
-        error: err.message || "Failed to fetch response."
-      });
-    }
+    
+    const newResponse = await executeGraphQLQuery(endpointUrl, activeTab.query, activeTab.variables, activeTab.headers);
+    setResponse(newResponse);
   };
 
   return (

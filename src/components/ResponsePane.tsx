@@ -1,5 +1,45 @@
+import { useEditor } from '../contexts/EditorContext';
+import CodeMirror from '@uiw/react-codemirror';
+import { json } from '@codemirror/lang-json';
+import { EditorView } from '@codemirror/view';
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { tags as t } from '@lezer/highlight';
+
+const queryCampUITheme = EditorView.theme({
+  "&": { color: "var(--color-text)", backgroundColor: "transparent" },
+  "&.cm-focused": { outline: "none" },
+  ".cm-content": { caretColor: "var(--color-cta)" },
+  "&.cm-focused .cm-selectionBackground, ::selection": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
+  ".cm-gutters": { backgroundColor: "transparent", color: "var(--color-text-muted)", borderRight: "none" },
+  ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--color-text)" },
+  ".cm-activeLine": { backgroundColor: "rgba(255, 255, 255, 0.03)" }
+}, { dark: true });
+
+const queryCampSyntax = HighlightStyle.define([
+  { tag: t.keyword, color: "#F472B6" },
+  { tag: t.variableName, color: "#4ADE80" },
+  { tag: t.propertyName, color: "#F8FAFC" },
+  { tag: t.string, color: "#FBBF24" },
+  { tag: t.number, color: "#FBBF24" },
+  { tag: t.punctuation, color: "#94A3B8" },
+  { tag: t.definition(t.name), color: "#4ADE80" },
+  { tag: t.typeName, color: "#F8FAFC" },
+]);
+
+const customTheme = [queryCampUITheme, syntaxHighlighting(queryCampSyntax)];
 
 export default function ResponsePane() {
+  const { response } = useEditor();
+  const isError = response.status !== 200 && response.status !== null;
+  const statusColor = isError ? '#F43F5E' : 'var(--color-cta)';
+  const statusBg = isError ? '#F43F5E20' : '#1ea95020';
+  
+  const formattedResponse = response.data 
+    ? JSON.stringify({ data: response.data }, null, 2)
+    : response.error 
+      ? JSON.stringify({ error: response.error }, null, 2)
+      : '{\n  // Execute a query to see the response\n}';
+
   return (
     <div style={{
       display: 'flex',
@@ -13,11 +53,19 @@ export default function ResponsePane() {
         <div className="flex items-center gap-sm">
           <span style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '1px', color: 'var(--color-text-muted)' }}>RESPONSE</span>
           <div style={{ height: '4px', width: '4px', borderRadius: '50%', background: 'var(--color-border)', margin: '0 8px' }}></div>
-          <div className="flex items-center gap-xs" style={{ background: '#1ea95020', color: 'var(--color-cta)', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-cta)' }}></div>
-            200 OK
-          </div>
-          <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginLeft: '8px' }}>124ms</span>
+          {response.status ? (
+            <div className="flex items-center gap-xs" style={{ background: statusBg, color: statusColor, padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusColor }}></div>
+              {response.status} {isError ? 'ERROR' : 'OK'}
+            </div>
+          ) : (
+            <div className="flex items-center gap-xs" style={{ background: '#33415550', color: 'var(--color-text-muted)', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
+               WAITING
+            </div>
+          )}
+          {response.timeMs !== null && (
+            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginLeft: '8px' }}>{response.timeMs}ms</span>
+          )}
         </div>
         <button className="btn-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -25,23 +73,17 @@ export default function ResponsePane() {
       </div>
 
       {/* JSON Response */}
-      <div style={{ flex: 1, padding: '24px 16px', fontFamily: 'monospace', fontSize: '14px', lineHeight: 1.6, overflowY: 'auto' }}>
-        <div>{'{'}</div>
-        <div style={{ paddingLeft: '16px' }}><span style={{ color: '#FBBF24' }}>"data"</span>: {'{'}</div>
-        <div style={{ paddingLeft: '32px' }}><span style={{ color: '#FBBF24' }}>"user"</span>: {'{'}</div>
-        <div style={{ paddingLeft: '48px' }}><span style={{ color: '#FBBF24' }}>"id"</span>: <span style={{ color: '#38BDF8' }}>"usr_982347102"</span>,</div>
-        <div style={{ paddingLeft: '48px' }}><span style={{ color: '#FBBF24' }}>"username"</span>: <span style={{ color: '#38BDF8' }}>"dev_wizard"</span>,</div>
-        <div style={{ paddingLeft: '48px' }}><span style={{ color: '#FBBF24' }}>"email"</span>: <span style={{ color: '#38BDF8' }}>"alex@querycamp.io"</span>,</div>
-        <div style={{ paddingLeft: '48px' }}><span style={{ color: '#FBBF24' }}>"posts"</span>: [</div>
-        <div style={{ paddingLeft: '64px' }}>{'{'}</div>
-        <div style={{ paddingLeft: '80px' }}><span style={{ color: '#FBBF24' }}>"title"</span>: <span style={{ color: '#38BDF8' }}>"Mastering GraphQL with QueryCamp"</span>,</div>
-        <div style={{ paddingLeft: '80px' }}><span style={{ color: '#FBBF24' }}>"content"</span>: <span style={{ color: '#38BDF8' }}>"This IDE changed my workflow!"</span>,</div>
-        <div style={{ paddingLeft: '80px' }}><span style={{ color: '#FBBF24' }}>"createdAt"</span>: <span style={{ color: '#38BDF8' }}>"2023-11-20T10:00:00Z"</span></div>
-        <div style={{ paddingLeft: '64px' }}>{'}'}</div>
-        <div style={{ paddingLeft: '48px' }}>]</div>
-        <div style={{ paddingLeft: '32px' }}>{'}'}</div>
-        <div style={{ paddingLeft: '16px' }}>{'}'}</div>
-        <div>{'}'}</div>
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
+          <CodeMirror
+            value={formattedResponse}
+            theme={customTheme}
+            readOnly={true}
+            height="100%"
+            style={{ height: '100%', fontSize: '14px', fontFamily: "'Space Grotesk', monospace" }}
+            extensions={[json()]}
+          />
+        </div>
       </div>
 
       {/* Floating Need Help Pill */}
@@ -74,17 +116,19 @@ export default function ResponsePane() {
       </div>
 
       {/* Error / Warning Alert */}
-      <div style={{ background: '#4C1D9520', borderTop: '2px solid #F43F5E', padding: '16px', paddingLeft: '24px', paddingRight: '64px', position: 'relative' }}>
-         <div className="flex" style={{ gap: '16px' }}>
-           <div style={{ marginTop: '2px' }}>
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {response.error && (
+        <div style={{ background: '#4C1D9520', borderTop: '2px solid #F43F5E', padding: '16px', paddingLeft: '24px', paddingRight: '64px', position: 'relative' }}>
+           <div className="flex" style={{ gap: '16px' }}>
+             <div style={{ marginTop: '2px' }}>
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+             </div>
+             <div>
+               <div style={{ fontSize: '13px', fontWeight: 600, color: '#F43F5E', marginBottom: '4px' }}>QUERY ERROR</div>
+               <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{response.error}</div>
+             </div>
            </div>
-           <div>
-             <div style={{ fontSize: '13px', fontWeight: 600, color: '#F43F5E', marginBottom: '4px' }}>POTENTIAL SCHEMA MISMATCH</div>
-             <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Field 'posts' should return [Post!] but found null for user 'user_982347102'. Check database consistency.</div>
-           </div>
-         </div>
-      </div>
+        </div>
+      )}
 
       {/* Footer / Status Bar */}
       <div className="flex items-center justify-between" style={{ padding: '8px 16px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)', fontSize: '12px', color: 'var(--color-text-muted)' }}>

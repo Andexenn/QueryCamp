@@ -1,3 +1,4 @@
+import {FiRefreshCw, FiDatabase} from 'react-icons/fi'
 
 export default function HomeSidebar() {
   return (
@@ -11,7 +12,7 @@ export default function HomeSidebar() {
       <div className="flex items-center justify-between" style={{ padding: '16px 24px' }}>
         <h3 style={{ fontSize: '13px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>Documentation</h3>
         <button className="btn-icon" style={{ padding: '4px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>
+          <FiRefreshCw />
         </button>
       </div>
 
@@ -29,7 +30,7 @@ export default function HomeSidebar() {
         <div style={{ marginBottom: '16px' }}>
           <div className="flex items-center gap-sm" style={{ padding: '8px 0', cursor: 'pointer', color: 'var(--color-text)' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: 'rotate(90deg)' }}><polyline points="9 18 15 12 9 6"/></svg>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--color-cta)', marginRight: '4px' }}></div>
+            <FiDatabase/>
             <strong style={{ fontSize: '14px', fontWeight: 600 }}>Queries</strong>
           </div>
           <div style={{ paddingLeft: '28px', borderLeft: '1px solid var(--color-secondary)', marginLeft: '6px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '12px' }}>

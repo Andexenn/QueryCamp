@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FiLink } from 'react-icons/fi';
+import { FiLink, FiPlay } from 'react-icons/fi';
+import myLogo from '/favicon_io/favicon-32x32.png';
 
 interface TopbarProps {
   onRunQuery?: (endpoint: string) => void; 
@@ -28,6 +29,7 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
     }}>
       {/* Logo Area */}
       <div className="flex items-center gap-sm">
+        <img src={myLogo} alt="Logo" />
         <h2 style={{ fontSize: '20px', margin: 0 }}>QueryCamp</h2>
       </div>
 
@@ -36,7 +38,6 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
         <div className="flex items-center input" style={{ padding: '10px 12px', borderRadius: '6px', flex: 1, maxWidth: '400px' }}>
           <FiLink size={16} color="var(--color-text-muted)" style={{ marginRight: '8px' }} />
           
-          {/* Cập nhật input: Dùng value và onChange thay vì defaultValue */}
           <input 
             type="text" 
             value={endpoint} 
@@ -49,15 +50,13 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-sm">
-        {/* Thêm onClick vào nút */}
+      <div className="flex items-center gap-sm ">
         <button 
           className="btn-primary" 
           onClick={handleRunClick}
           style={{ padding: '8px 16px', borderRadius: '6px' }}
         >
-          {/* SVG fill="currentColor" sẽ tự động đổi màu theo màu chữ của nút */}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <FiPlay size={16} className='text-white' />
           Run Query
         </button>
       </div>
