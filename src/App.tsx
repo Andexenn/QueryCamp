@@ -7,30 +7,16 @@ function App() {
 
   return (
     <>
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        zIndex: 9999,
-        background: 'var(--color-primary)',
-        padding: '10px',
-        borderRadius: '8px',
-        border: '1px solid var(--color-border)',
-        boxShadow: 'var(--shadow-lg)',
-        display: 'flex',
-        gap: '10px'
-      }}>
+      <div className="fixed bottom-5 right-5 z-[9999] bg-[var(--color-primary)] p-2.5 rounded-lg border border-[var(--color-border)] shadow-[var(--shadow-lg)] flex gap-2.5">
         <button 
-          className="btn-secondary" 
+          className={`btn-secondary px-4 py-2 text-sm ${currentPage === 'home' ? 'bg-[var(--color-secondary)]' : 'bg-transparent'}`}
           onClick={() => setCurrentPage('home')}
-          style={{ padding: '8px 16px', fontSize: '14px', background: currentPage === 'home' ? 'var(--color-secondary)' : 'transparent' }}
         >
           IDE View
         </button>
         <button 
-          className="btn-secondary" 
+          className={`btn-secondary px-4 py-2 text-sm ${currentPage === 'chatbot' ? 'bg-[var(--color-secondary)]' : 'bg-transparent'}`}
           onClick={() => setCurrentPage('chatbot')}
-          style={{ padding: '8px 16px', fontSize: '14px', background: currentPage === 'chatbot' ? 'var(--color-secondary)' : 'transparent' }}
         >
           Chat View
         </button>

@@ -1,50 +1,54 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
-// 1. Data Types
-export interface TabData {
-  id: string;
-  name: string;
-  query: string;
-  variables: string;
-}
-
-export interface ApiResponse {
-  status: number | null;
-  timeMs: number | null;
-  data: any | null;
-  error?: string | null;
-}
+import type { TabData, ApiResponse, SchemaVersion } from '../types/editor';
+import { executeGraphQLQuery } from '../services/queryService';
 
 interface EditorContextType {
   tabs: TabData[];
   activeTabId: string | null;
   endpointUrl: string;
   response: ApiResponse;
+  schemaVersions: SchemaVersion[];
+  activeSchemaVersionId: string;
   
   // Actions
-  addTab: () => void;
+  addTab: (category: TabData['category']) => void;
   closeTab: (id: string, e: React.MouseEvent) => void;
+  deleteTab: (id: string, e?: React.MouseEvent) => void;
   updateTab: (id: string, updates: Partial<TabData>) => void;
   setActiveTabId: (id: string) => void;
   setEndpointUrl: (url: string) => void;
   executeQuery: () => Promise<void>;
+  createSchemaVersion: (name: string) => void;
+  renameSchemaVersion: (id: string, newName: string) => void;
+  setActiveSchemaVersionId: (id: string) => void;
 }
 
 // 2. Default Initial Data
 const generateId = () => crypto.randomUUID();
 
+export const DEFAULT_SCHEMA_VERSION: SchemaVersion = { id: 'v2.4.1', name: 'v2.4.1' };
+
 export const DEFAULT_TABS: TabData[] = [
   {
     id: generateId(),
     name: 'GetUserData.graphql',
+    category: 'Queries',
     query: `query GetUserData($id: ID!) {\n  user(id: $id) {\n    id\n    username\n    email\n    posts {\n      title\n      content\n      createdAt\n    }\n  }\n}`,
-    variables: `{\n  "id": "usr_982347102"\n}`
+    variables: `{\n  "id": "usr_982347102"\n}`,
+    headers: `{\n  \n}`,
+    isOpen: true,
+    schemaVersionId: DEFAULT_SCHEMA_VERSION.id
   },
   {
     id: generateId(),
     name: 'UpdateProfile.graphql',
+    category: 'Mutations',
     query: `mutation UpdateProfile($input: ProfileInput!) {\n  updateProfile(input: $input) {\n    id\n    username\n    updatedAt\n  }\n}`,
-    variables: `{\n  "input": {\n    "username": "new_name"\n  }\n}`
+    variables: `{\n  "input": {\n    "username": "new_name"\n  }\n}`,
+    headers: `{\n  \n}`,
+    isOpen: true,
+    schemaVersionId: DEFAULT_SCHEMA_VERSION.id
   }
 ];
 
@@ -63,6 +67,11 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       if (savedTabs) {
         const parsed = JSON.parse(savedTabs);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          // Backward compatibility check for tabs without a category or schema version
+          const needsFixing = parsed.some(t => !t.category || t.isOpen === undefined || !t.schemaVersionId);
+          if (needsFixing) {
+            return parsed.map(t => ({...t, category: t.category || 'Queries', isOpen: t.isOpen ?? true, schemaVersionId: t.schemaVersionId || DEFAULT_SCHEMA_VERSION.id}));
+          }
           if (parsed.length === 1 && parsed[0].name === 'NewQuery.graphql') {
             return DEFAULT_TABS;
           }
@@ -97,6 +106,29 @@ export function EditorProvider({ children }: { children: ReactNode }) {
      }
   });
 
+  const [schemaVersions, setSchemaVersions] = useState<SchemaVersion[]>(() => {
+    try {
+      const saved = localStorage.getItem('querycamp_schema_versions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Failed to load schema versions", e);
+    }
+    return [DEFAULT_SCHEMA_VERSION];
+  });
+
+  const [activeSchemaVersionId, setActiveSchemaVersionId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('querycamp_active_schema_version');
+      if (saved) return saved;
+    } catch (e) {
+      console.error("Failed to load active schema version", e);
+    }
+    return DEFAULT_SCHEMA_VERSION.id;
+  });
+
   const [response, setResponse] = useState<ApiResponse>({ status: null, timeMs: null, data: null });
 
   // --- Persistence Effects ---
@@ -114,14 +146,50 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('querycamp_endpoint', endpointUrl);
   }, [endpointUrl]);
 
+  useEffect(() => {
+    localStorage.setItem('querycamp_schema_versions', JSON.stringify(schemaVersions));
+  }, [schemaVersions]);
+
+  useEffect(() => {
+    localStorage.setItem('querycamp_active_schema_version', activeSchemaVersionId);
+  }, [activeSchemaVersionId]);
+
 
   // --- Actions ---
-  const addTab = () => {
+  const addTab = (category: TabData['category'] = 'Queries') => {
+    let prefix = '';
+    let defaultQuery = '# Write your GraphQL query here\n';
+    
+    switch(category) {
+      case 'Queries': prefix = 'Query'; defaultQuery = 'query {\n  \n}'; break;
+      case 'Mutations': prefix = 'Mutation'; defaultQuery = 'mutation {\n  \n}'; break;
+      case 'Subscriptions': prefix = 'Subscription'; defaultQuery = 'subscription {\n  \n}'; break;
+      case 'Types': prefix = 'Type'; defaultQuery = '# Define your GraphQL types here\n'; break;
+    }
+
+    let maxCounter = 0;
+    const regex = new RegExp(`^${prefix}(\\d+)\\.graphql$`);
+    tabs.forEach(tab => {
+      if (tab.category === category) {
+        const match = tab.name.match(regex);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxCounter) {
+            maxCounter = num;
+          }
+        }
+      }
+    });
+    
     const newTab: TabData = {
       id: generateId(),
-      name: `Query${tabs.length + 1}.graphql`,
-      query: '# Write your GraphQL query here\n',
-      variables: '{\n  \n}'
+      name: `${prefix}${maxCounter + 1}.graphql`,
+      category: category,
+      query: defaultQuery,
+      variables: '{\n  \n}',
+      headers: '{\n  \n}',
+      isOpen: true,
+      schemaVersionId: activeSchemaVersionId
     };
     setTabs([...tabs, newTab]);
     setActiveTabId(newTab.id);
@@ -130,18 +198,26 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const closeTab = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // prevent clicking the tab
     setTabs(prevTabs => {
+      const result = prevTabs.map(t => t.id === id ? { ...t, isOpen: false } : t);
+      
+      // If we closed the active tab, pick a new one that is open and in the same schema version
+      if (activeTabId === id) {
+        const openTabs = result.filter(t => t.isOpen !== false && t.schemaVersionId === activeSchemaVersionId);
+        setActiveTabId(openTabs.length > 0 ? openTabs[openTabs.length - 1].id : null);
+      }
+      return result;
+    });
+  };
+
+  const deleteTab = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setTabs(prevTabs => {
       const result = prevTabs.filter(t => t.id !== id);
       
-      // If we closed the active tab, pick a new one
+      // If we deleted the active tab, pick a new one that is open and in the same schema version
       if (activeTabId === id) {
-        if (result.length > 0) {
-          // Try to get the one before it, or the first one
-          const closedIndex = prevTabs.findIndex(t => t.id === id);
-          const nextIndex = Math.max(0, closedIndex - 1);
-          setActiveTabId(result[nextIndex]?.id || null);
-        } else {
-          setActiveTabId(null);
-        }
+        const openTabs = result.filter(t => t.isOpen !== false && t.schemaVersionId === activeSchemaVersionId);
+        setActiveTabId(openTabs.length > 0 ? openTabs[openTabs.length - 1].id : null);
       }
       return result;
     });
@@ -159,55 +235,40 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     if (!activeTab || !activeTab.query.trim()) return;
 
     setResponse({ status: null, timeMs: null, data: null, error: null }); // Resetting state
-    const startTime = performance.now();
+    
+    const newResponse = await executeGraphQLQuery(endpointUrl, activeTab.query, activeTab.variables, activeTab.headers);
+    console.log(newResponse);
+    setResponse(newResponse);
+  };
 
-    try {
-      // Parse variables if needed
-      let parsedVariables = {};
-      if (activeTab.variables.trim()) {
-         try {
-           parsedVariables = JSON.parse(activeTab.variables);
-         } catch (e) {
-           setResponse({
-             status: 400,
-             timeMs: performance.now() - startTime,
-             data: null,
-             error: "Invalid JSON in variables panel."
-           });
-           return;
-         }
-      }
+  const createSchemaVersion = (name: string) => {
+    const newId = generateId();
+    const newVersion: SchemaVersion = { id: newId, name };
+    
+    // Duplicate tabs for the new schema version
+    const tabsToCopy = tabs.filter(t => t.schemaVersionId === activeSchemaVersionId);
+    const newTabs = tabsToCopy.map(t => ({
+      ...t,
+      id: generateId(),
+      schemaVersionId: newId
+    }));
 
-      const res = await fetch(endpointUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          query: activeTab.query,
-          variables: parsedVariables
-        })
-      });
-
-      const data = await res.json();
-      const timeMs = Math.round(performance.now() - startTime);
-
-      setResponse({
-        status: res.status,
-        timeMs,
-        data: data.data || data, // GraphQL usually puts results in .data
-        error: data.errors ? JSON.stringify(data.errors, null, 2) : res.ok ? null : "HTTP Error"
-      });
-
-    } catch (err: any) {
-      setResponse({
-        status: 0, // Network error
-        timeMs: Math.round(performance.now() - startTime),
-        data: null,
-        error: err.message || "Failed to fetch response."
-      });
+    setSchemaVersions([...schemaVersions, newVersion]);
+    setTabs([...tabs, ...newTabs]);
+    setActiveSchemaVersionId(newId);
+    
+    // Try to set an active tab in the new version
+    if (newTabs.length > 0) {
+      setActiveTabId(newTabs[0].id);
+    } else {
+      setActiveTabId(null);
     }
+  };
+
+  const renameSchemaVersion = (id: string, newName: string) => {
+    setSchemaVersions(prevVersions => 
+      prevVersions.map(v => v.id === id ? { ...v, name: newName } : v)
+    );
   };
 
   return (
@@ -216,12 +277,18 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       activeTabId,
       endpointUrl,
       response,
+      schemaVersions,
+      activeSchemaVersionId,
       addTab,
       closeTab,
+      deleteTab,
       updateTab,
       setActiveTabId,
       setEndpointUrl,
-      executeQuery
+      executeQuery,
+      createSchemaVersion,
+      renameSchemaVersion,
+      setActiveSchemaVersionId
     }}>
       {children}
     </EditorContext.Provider>
