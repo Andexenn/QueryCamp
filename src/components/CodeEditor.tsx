@@ -107,6 +107,7 @@ export default function CodeEditor() {
       margin: 0,
       padding: 0, // Explicitly set to 0 just to be safe
       border: '1px solid var(--color-border)',
+      minHeight: 0,
     }}>
       {/* Query Editor Tabs Bar */}
       <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)', overflowX: 'auto' }}>

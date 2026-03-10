@@ -87,7 +87,8 @@ export default function ResponsePane() {
       flexDirection: 'column',
       height: '100%',
       backgroundColor: 'var(--color-background)',
-      borderLeft: '1px solid var(--color-border)'
+      borderLeft: '1px solid var(--color-border)',
+      minHeight: 0
     }}>
       {/* Response Header */}
       <div className="flex items-center justify-between" style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)' }}>
@@ -131,14 +132,32 @@ export default function ResponsePane() {
 
       {/* Error / Warning Alert */}
       {response.error && (
-        <div style={{ background: '#4C1D9520', borderTop: '2px solid #F43F5E', padding: '16px', paddingLeft: '24px', paddingRight: '64px', position: 'relative' }}>
+        <div style={{ 
+          background: '#4C1D9520', 
+          borderTop: '2px solid #F43F5E', 
+          padding: '16px', 
+          paddingLeft: '24px', 
+          paddingRight: '64px', 
+          position: 'relative',
+          flexShrink: 0,
+          maxHeight: '200px',
+          overflowY: 'auto'
+        }}>
            <div className="flex" style={{ gap: '16px' }}>
-             <div style={{ marginTop: '2px' }}>
+             <div style={{ marginTop: '2px', flexShrink: 0 }}>
                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
              </div>
-             <div>
+             <div style={{ minWidth: 0 }}>
                <div style={{ fontSize: '13px', fontWeight: 600, color: '#F43F5E', marginBottom: '4px' }}>QUERY ERROR</div>
-               <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{response.error}</div>
+               <div style={{ 
+                 fontSize: '13px', 
+                 color: 'var(--color-text-muted)', 
+                 fontFamily: 'monospace',
+                 whiteSpace: 'pre-wrap',
+                 wordBreak: 'break-all'
+               }}>
+                 {response.error}
+               </div>
              </div>
            </div>
         </div>

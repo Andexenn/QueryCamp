@@ -20,7 +20,8 @@ export default function Home() {
           display: 'grid',
           gridTemplateColumns: '280px 1fr 400px',
           flex: 1,
-          overflow: 'hidden'
+          overflow: 'hidden',
+          minHeight: 0
         }}>
           <HomeSidebar />
           <CodeEditor />
