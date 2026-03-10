@@ -55,13 +55,14 @@ const queryCampSyntax = HighlightStyle.define([
 const customTheme = [queryCampUITheme, syntaxHighlighting(queryCampSyntax)];
 
 export default function CodeEditor() {
-  const { tabs, activeTabId, setActiveTabId, addTab, closeTab, updateTab } = useEditor();
+  const { tabs, activeTabId, setActiveTabId, addTab, closeTab, updateTab, activeSchemaVersionId } = useEditor();
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingTabName, setEditingTabName] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const [activeBottomPane, setActiveBottomPane] = useState<'variables' | 'headers'>('variables');
 
-  const activeTab = tabs.find(t => t.id === activeTabId) || tabs[0];
+  const filteredTabs = tabs.filter(t => t.schemaVersionId === activeSchemaVersionId);
+  const activeTab = filteredTabs.find(t => t.id === activeTabId && t.isOpen !== false) || filteredTabs.find(t => t.isOpen !== false);
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -109,7 +110,7 @@ export default function CodeEditor() {
     }}>
       {/* Query Editor Tabs Bar */}
       <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)', overflowX: 'auto' }}>
-        {tabs.map(tab => (
+        {filteredTabs.filter(t => t.isOpen !== false).map(tab => (
           <div 
             key={tab.id}
             onClick={() => {
@@ -148,7 +149,7 @@ export default function CodeEditor() {
             ) : (
               <span>{tab.name}</span>
             )}
-            {tabs.length > 1 && (
+            {filteredTabs.filter(t => t.isOpen !== false).length > 1 && (
               <div 
                 className="ml-3 opacity-50 hover:opacity-100 hover:bg-white/10 hover:scale-110 p-1 rounded-full transition-all"
                 onClick={(e) => closeTab(tab.id, e)}
@@ -162,7 +163,7 @@ export default function CodeEditor() {
         <div 
           className="flex items-center justify-center btn-icon" 
           style={{ marginLeft: 'var(--space-sm)', padding: 'var(--space-md)' }}
-          onClick={addTab}
+          onClick={() => addTab('Queries')}
         >
           <FiPlus size={16} color="currentColor" />
         </div>
