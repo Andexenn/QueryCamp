@@ -13,6 +13,16 @@ export default function HomeSidebar() {
     Types: true
   });
 
+  const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchText]);
+
   const toggleCategory = (cat: string) => setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
 
   const [contextMenu, setContextMenu] = useState<{ id: string, x: number, y: number } | null>(null);
@@ -54,7 +64,11 @@ export default function HomeSidebar() {
     setIsEditingSchema(false);
   };
    
-  const filteredTabs = tabs.filter(t => t.schemaVersionId === activeSchemaVersionId);
+  const searchQuery = debouncedSearchText.toLowerCase();
+  const filteredTabs = tabs.filter(t => 
+    t.schemaVersionId === activeSchemaVersionId && 
+    t.name.toLowerCase().startsWith(searchQuery)
+  );
 
   return (
     <aside style={{
@@ -74,13 +88,19 @@ export default function HomeSidebar() {
       <div style={{ padding: '0 16px 16px' }}>
         <div className="input flex items-center" style={{ padding: '8px 12px' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', color: 'var(--color-text-muted)' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search schema..." style={{
-            background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '14px'
-          }} />
+          <input 
+            type="text" 
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Search schema..." 
+            style={{
+              background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '14px'
+            }} 
+          />
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px', minHeight: 0 }}>
         {/* Queries */}
         <div style={{ marginBottom: '16px' }}>
           <div onClick={() => toggleCategory('Queries')} className="flex items-center gap-sm group" style={{ padding: '8px 0', cursor: 'pointer', color: 'var(--color-text)' }}>

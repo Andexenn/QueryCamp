@@ -1,9 +1,11 @@
+import { useState, useEffect } from 'react';
 import { useEditor } from '../contexts/EditorContext';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
 import { EditorView } from '@codemirror/view';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
+import { FiWifi, FiWifiOff } from 'react-icons/fi';
 
 const queryCampUITheme = EditorView.theme({
   "&": { color: "var(--color-text)", backgroundColor: "transparent" },
@@ -29,7 +31,7 @@ const queryCampSyntax = HighlightStyle.define([
 const customTheme = [queryCampUITheme, syntaxHighlighting(queryCampSyntax)];
 
 export default function ResponsePane() {
-  const { response } = useEditor();
+  const { response, endpointUrl } = useEditor();
   const isError = response.status !== 200 && response.status !== null;
   const statusColor = isError ? '#F43F5E' : 'var(--color-cta)';
   const statusBg = isError ? '#F43F5E20' : '#1ea95020';
@@ -39,6 +41,33 @@ export default function ResponsePane() {
     : response.error 
       ? JSON.stringify({ error: response.error }, null, 2)
       : '{\n  // Execute a query to see the response\n}';
+
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const checkConnection = async () => {
+      if (!endpointUrl) return;
+      try {
+        await fetch(endpointUrl, { method: 'GET' });
+        if (isMounted) setIsConnected(true);
+      } catch (e) {
+        if (isMounted) setIsConnected(false);
+      }
+    };
+
+    checkConnection(); // Initial check
+    
+    const interval = setInterval(() => {
+      checkConnection();
+    }, 10000); // 10s polling
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [endpointUrl]);
 
   const handleDownload = () => {
     if (!formattedResponse) return;
@@ -85,7 +114,7 @@ export default function ResponsePane() {
       </div>
 
       {/* JSON Response */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minHeight: 0 }}>
         <div style={{ width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
           <CodeMirror
             value={formattedResponse}
@@ -98,34 +127,7 @@ export default function ResponsePane() {
         </div>
       </div>
 
-      {/* Floating Need Help Pill */}
-      <div style={{ position: 'relative', display: 'flex', justifyContent: 'flex-end', padding: '16px' }}>
-         <div style={{ 
-           background: 'var(--color-primary)', 
-           border: '1px solid var(--color-border)', 
-           borderRadius: '8px', 
-           padding: '12px 16px', 
-           display: 'flex', 
-           alignItems: 'center', 
-           gap: '12px',
-           boxShadow: 'var(--shadow-lg)'
-         }}>
-           <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'var(--color-cta)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-           </div>
-           <div>
-             <div style={{ fontSize: '13px', fontWeight: 500 }}>Need help with your</div>
-             <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>GraphQL query?</div>
-           </div>
-           <button className="btn-icon" style={{ marginLeft: '8px' }}>
-             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-           </button>
-         </div>
-         {/* Green circle chatbot trigger (bottom right) */}
-         <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--color-cta)', position: 'absolute', bottom: '-24px', right: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-md)', zIndex: 10 }}>
-           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-         </div>
-      </div>
+      
 
       {/* Error / Warning Alert */}
       {response.error && (
@@ -143,11 +145,10 @@ export default function ResponsePane() {
       )}
 
       {/* Footer / Status Bar */}
-      <div className="flex items-center justify-between" style={{ padding: '8px 16px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-        <div>Line: 4 &nbsp;&nbsp; Col: 12</div>
-        <div className="flex items-center gap-xs">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          CONNECTED
+      <div className="flex items-center justify-end" style={{ padding: '8px 16px', borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+        <div className="flex items-center gap-xs" style={{ color: isConnected === true ? '#4ADE80' : isConnected === false ? '#F43F5E' : 'var(--color-text-muted)' }}>
+          {isConnected === true ? <FiWifi /> : <FiWifiOff />}
+          {isConnected === true ? 'CONNECTED' : isConnected === false ? 'DISCONNECTED' : 'CHECKING...'}
         </div>
       </div>
     </div>

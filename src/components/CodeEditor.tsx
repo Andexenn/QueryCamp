@@ -170,7 +170,7 @@ export default function CodeEditor() {
       </div>
 
       {/* Editor Content Area */}
-      <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden', minHeight: 0 }}>
         <div style={{ flex: 1, width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
           <CodeMirror
             value={activeTab.query}
@@ -215,7 +215,7 @@ export default function CodeEditor() {
         </div>
         
         {/* State Driven Editor Area */}
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: 'var(--color-primary)' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: 'var(--color-primary)', minHeight: 0 }}>
           <div style={{ width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
             {activeBottomPane === 'variables' ? (
               <CodeMirror

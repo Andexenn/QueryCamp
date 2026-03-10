@@ -7,7 +7,7 @@ function App() {
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-[9999] bg-[var(--color-primary)] p-2.5 rounded-lg border border-[var(--color-border)] shadow-[var(--shadow-lg)] flex gap-2.5">
+      <div className="fixed bottom-10 right-5 z-[9999] bg-[var(--color-primary)] p-2.5 rounded-lg border border-[var(--color-border)] shadow-[var(--shadow-lg)] flex gap-2.5">
         <button 
           className={`btn-secondary px-4 py-2 text-sm ${currentPage === 'home' ? 'bg-[var(--color-secondary)]' : 'bg-transparent'}`}
           onClick={() => setCurrentPage('home')}
