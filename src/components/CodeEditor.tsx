@@ -60,6 +60,27 @@ export default function CodeEditor() {
   const [editingTabName, setEditingTabName] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const [activeBottomPane, setActiveBottomPane] = useState<'variables' | 'headers'>('variables');
+  const [bottomPaneHeight, setBottomPaneHeight] = useState(250);
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = bottomPaneHeight;
+
+    const handleMouseMove = (mouseMoveEvent: MouseEvent) => {
+      const delta = startY - mouseMoveEvent.clientY;
+      const newBottomHeight = Math.max(100, Math.min(startHeight + delta, window.innerHeight - 200));
+      setBottomPaneHeight(newBottomHeight);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   const filteredTabs = tabs.filter(t => t.schemaVersionId === activeSchemaVersionId);
   const activeTab = filteredTabs.find(t => t.id === activeTabId && t.isOpen !== false) || filteredTabs.find(t => t.isOpen !== false);
@@ -184,8 +205,23 @@ export default function CodeEditor() {
         </div>
       </div>
 
+      {/* Resizer Divider */}
+      <div 
+        onMouseDown={handleResizeStart}
+        style={{ 
+          height: '4px', 
+          cursor: 'row-resize', 
+          backgroundColor: 'transparent',
+          borderTop: '1px solid var(--color-border)',
+          borderBottom: '1px solid var(--color-border)',
+          flexShrink: 0,
+          zIndex: 10
+        }}
+        className="hover:bg-[var(--color-cta)] transition-colors"
+      />
+
       {/* Variables/Headers Pane */}
-      <div style={{ height: '250px', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: `${bottomPaneHeight}px`, display: 'flex', flexDirection: 'column' }}>
         <div className="flex items-center" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-primary)' }}>
           <div 
             onClick={() => setActiveBottomPane('variables')}

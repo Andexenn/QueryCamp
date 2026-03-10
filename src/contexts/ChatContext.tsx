@@ -157,7 +157,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const errorMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: "*Sorry, I encountered an error. Is the AI engine loaded properly?*",
+        content: `*Sorry, I encountered an error. Is the AI engine loaded properly? (${e instanceof Error ? e.message : String(e)})*`,
         timestamp: Date.now()
       };
       setSessions(prev => prev.map(s => {

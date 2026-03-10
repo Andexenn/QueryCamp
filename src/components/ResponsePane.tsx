@@ -43,6 +43,27 @@ export default function ResponsePane() {
       : '{\n  // Execute a query to see the response\n}';
 
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [errorPaneHeight, setErrorPaneHeight] = useState(200);
+
+  const handleErrorResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = errorPaneHeight;
+
+    const handleMouseMove = (mouseMoveEvent: MouseEvent) => {
+      const delta = startY - mouseMoveEvent.clientY;
+      const newHeight = Math.max(100, Math.min(startHeight + delta, window.innerHeight - 200));
+      setErrorPaneHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -130,17 +151,32 @@ export default function ResponsePane() {
 
       
 
+      {/* Resizer for Error Area */}
+      {response.error && (
+        <div 
+          onMouseDown={handleErrorResizeStart}
+          style={{ 
+            height: '4px', 
+            cursor: 'row-resize', 
+            backgroundColor: 'transparent', 
+            borderTop: '2px solid #F43F5E',
+            flexShrink: 0,
+            zIndex: 10
+          }}
+          className="hover:bg-[#F43F5E] transition-colors"
+        />
+      )}
+
       {/* Error / Warning Alert */}
       {response.error && (
         <div style={{ 
           background: '#4C1D9520', 
-          borderTop: '2px solid #F43F5E', 
           padding: '16px', 
           paddingLeft: '24px', 
           paddingRight: '64px', 
           position: 'relative',
           flexShrink: 0,
-          maxHeight: '200px',
+          height: `${errorPaneHeight}px`,
           overflowY: 'auto'
         }}>
            <div className="flex" style={{ gap: '16px' }}>
