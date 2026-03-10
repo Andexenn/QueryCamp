@@ -237,6 +237,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     setResponse({ status: null, timeMs: null, data: null, error: null }); // Resetting state
     
     const newResponse = await executeGraphQLQuery(endpointUrl, activeTab.query, activeTab.variables, activeTab.headers);
+    console.log(newResponse);
     setResponse(newResponse);
   };
 

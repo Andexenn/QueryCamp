@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEditor } from '../contexts/EditorContext';
 import { FiLink, FiPlay } from 'react-icons/fi';
 import myLogo from '/favicon_io/favicon-32x32.png';
 
@@ -7,13 +7,13 @@ interface TopbarProps {
 }
 
 export default function Topbar({ onRunQuery }: TopbarProps) {
-  const [endpoint, setEndpoint] = useState('https://api.querycamp.io/v1/graphql');
+  const { endpointUrl, setEndpointUrl, executeQuery } = useEditor();
 
   const handleRunClick = () => {
     if (onRunQuery) {
-      onRunQuery(endpoint);
+      onRunQuery(endpointUrl);
     } else {
-      console.log("Tiến hành gửi request tới:", endpoint);
+      executeQuery();
     }
   };
 
@@ -40,8 +40,8 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
           
           <input 
             type="text" 
-            value={endpoint} 
-            onChange={(e) => setEndpoint(e.target.value)}
+            value={endpointUrl} 
+            onChange={(e) => setEndpointUrl(e.target.value)}
             style={{
               background: 'transparent', border: 'none', color: 'var(--color-text)', outline: 'none', width: '100%', fontSize: '14px'
             }} 
