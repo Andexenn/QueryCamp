@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from 'react';
 import { useEditor } from '../contexts/EditorContext';
 import { FiLink, FiPlay } from 'react-icons/fi';
 import myLogo from '/favicon_io/favicon-32x32.png';
@@ -9,13 +10,33 @@ interface TopbarProps {
 export default function Topbar({ onRunQuery }: TopbarProps) {
   const { endpointUrl, setEndpointUrl, executeQuery } = useEditor();
 
-  const handleRunClick = () => {
+  // 1. Wrap in useCallback so it remains stable for the useEffect dependency array
+  const handleRunClick = useCallback(() => {
     if (onRunQuery) {
       onRunQuery(endpointUrl);
     } else {
       executeQuery();
     }
-  };
+  }, [onRunQuery, endpointUrl, executeQuery]);
+
+  // 2. Add the keyboard event listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // e.metaKey ensures this also works with Cmd + Enter on macOS!
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault(); // Prevents any default browser behavior
+        handleRunClick();
+      }
+    };
+
+    // Attach the listener to the window
+    window.addEventListener('keydown', handleKeyDown);
+
+    // 3. Cleanup function to prevent memory leaks
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleRunClick]); // Re-run effect only if handleRunClick changes
 
   return (
     <header style={{
@@ -50,15 +71,27 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-sm ">
-        <button 
-          className="btn-primary" 
-          onClick={handleRunClick}
-          style={{ padding: '8px 16px', borderRadius: '6px' }}
-        >
-          <FiPlay size={16} className='text-white' />
-          Run Query
-        </button>
+      <div className="flex items-center gap-sm">
+        
+        {/* 1. We wrap the button in a relative container and give it the 'group' class */}
+        <div className="relative flex flex-col items-center group">
+          
+          <button 
+            className="btn-primary flex items-center gap-2" 
+            onClick={handleRunClick}
+            style={{ padding: '8px 16px', borderRadius: '6px' }}
+          >
+            <FiPlay size={16} className='text-white' />
+            Run Query
+          </button>
+
+          {/* 2. This is the actual Tooltip. It stays hidden (opacity-0) until the group is hovered! */}
+          <div className="absolute top-full mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+            Ctrl + Enter
+          </div>
+
+        </div>
+
       </div>
     </header>
   );
