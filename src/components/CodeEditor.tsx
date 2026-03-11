@@ -8,7 +8,8 @@ import { EditorView } from '@codemirror/view';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
 import { useEditor } from '../contexts/EditorContext';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { buildSchema } from 'graphql';
 
 // 2. Define the Custom UI Theme
 const queryCampUITheme = EditorView.theme({
@@ -21,6 +22,7 @@ const queryCampUITheme = EditorView.theme({
   },
   ".cm-content": {
     caretColor: "var(--color-cta)", 
+    cursor: "text",
   },
   "&.cm-focused .cm-selectionBackground, ::selection": {
     backgroundColor: "rgba(255, 255, 255, 0.1)", 
@@ -84,6 +86,19 @@ export default function CodeEditor() {
 
   const filteredTabs = tabs.filter(t => t.schemaVersionId === activeSchemaVersionId);
   const activeTab = filteredTabs.find(t => t.id === activeTabId && t.isOpen !== false) || filteredTabs.find(t => t.isOpen !== false);
+
+  const schema = useMemo(() => {
+    try {
+      const typeTabs = filteredTabs.filter(t => t.category === 'Types');
+      if (typeTabs.length === 0) return undefined;
+      
+      const combinedSchema = typeTabs.map(t => t.query).join('\n');
+      return buildSchema(combinedSchema);
+    } catch (e) {
+      // Schema might be temporarily invalid while typing
+      return undefined;
+    }
+  }, [filteredTabs]);
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -200,7 +215,7 @@ export default function CodeEditor() {
             onChange={(value) => updateTab(activeTab.id, { query: value })}
             height="100%"
             style={{ height: '100%', fontSize: '14px', fontFamily: "'Space Grotesk', monospace" }}
-            extensions={[graphql()]}
+            extensions={schema ? [graphql(schema)] : [graphql()]}
           />
         </div>
       </div>
