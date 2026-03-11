@@ -17,7 +17,8 @@ export default function ChatArea() {
 
   useEffect(() => {
     initEngineIfMissing();
-  }, [initEngineIfMissing]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });

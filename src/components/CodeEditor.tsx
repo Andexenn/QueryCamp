@@ -92,10 +92,24 @@ export default function CodeEditor() {
       const typeTabs = filteredTabs.filter(t => t.category === 'Types');
       if (typeTabs.length === 0) return undefined;
       
-      const combinedSchema = typeTabs.map(t => t.query).join('\n');
+      let combinedSchema = typeTabs.map(t => t.query).join('\n');
+      
+      // Ensure standard scalars are not thrown out as "unknown type" if they aren't explicitly declared 
+      // by the user and buildSchema is being strict in this version of the cm6-graphql package.
+      const defaultScalars = ['ID', 'String', 'Boolean', 'Int', 'Float', 'Date'];
+      defaultScalars.forEach(scalar => {
+        if (!combinedSchema.includes(`scalar ${scalar}`) && combinedSchema.includes(scalar)) {
+            combinedSchema += `\nscalar ${scalar}`;
+        }
+      });
+      
+      if (!combinedSchema.includes('type Query')) {
+        combinedSchema += '\ntype Query { _dummy: String }';
+      }
+      
       return buildSchema(combinedSchema);
     } catch (e) {
-      // Schema might be temporarily invalid while typing
+      console.warn("Schema build error:", e);
       return undefined;
     }
   }, [filteredTabs]);
@@ -209,14 +223,14 @@ export default function CodeEditor() {
       {/* Editor Content Area */}
       <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden', minHeight: 0 }}>
         <div style={{ flex: 1, width: '100%', height: '100%', overflow: 'auto', paddingTop: '8px' }}>
-          <CodeMirror
-            value={activeTab.query}
-            theme={customTheme}
-            onChange={(value) => updateTab(activeTab.id, { query: value })}
-            height="100%"
-            style={{ height: '100%', fontSize: '14px', fontFamily: "'Space Grotesk', monospace" }}
-            extensions={schema ? [graphql(schema)] : [graphql()]}
-          />
+            <CodeMirror
+              value={activeTab.query}
+              theme={customTheme}
+              onChange={(value) => updateTab(activeTab.id, { query: value })}
+              height="100%"
+              style={{ height: '100%', fontSize: '14px', fontFamily: "'Space Grotesk', monospace" }}
+              extensions={activeTab.category === 'Types' ? [graphql()] : (schema ? [graphql(schema)] : [graphql()])}
+            />
         </div>
       </div>
 

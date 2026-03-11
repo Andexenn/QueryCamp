@@ -38,6 +38,9 @@ importers:
       graphql:
         specifier: ^16.13.1
         version: 16.13.1
+      graphql-ws:
+        specifier: ^6.0.7
+        version: 6.0.7(graphql@16.13.1)
       idb:
         specifier: ^8.0.3
         version: 8.0.3
@@ -1156,6 +1159,22 @@ packages:
     hasBin: true
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
+
+  graphql-ws@6.0.7:
+    resolution: {integrity: sha512-yoLRW+KRlDmnnROdAu7sX77VNLC0bsFoZyGQJLy1cF+X/SkLg/fWkRGrEEYQK8o2cafJ2wmEaMqMEZB3U3DYDg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@fastify/websocket': ^10 || ^11
+      crossws: ~0.3
+      graphql: ^15.10.1 || ^16
+      ws: ^8
+    peerDependenciesMeta:
+      '@fastify/websocket':
+        optional: true
+      crossws:
+        optional: true
+      ws:
+        optional: true
 
   graphql@16.13.1:
     resolution: {integrity: sha512-gGgrVCoDKlIZ8fIqXBBb0pPKqDgki0Z/FSKNiQzSGj2uEYHr1tq5wmBegGwJx6QB5S5cM0khSBpi/JFHMCvsmQ==}
@@ -2729,6 +2748,10 @@ snapshots:
       graphql: 16.13.1
       nullthrows: 1.1.1
       vscode-languageserver-types: 3.17.5
+
+  graphql-ws@6.0.7(graphql@16.13.1):
+    dependencies:
+      graphql: 16.13.1
 
   graphql@16.13.1: {}
 

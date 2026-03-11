@@ -32,7 +32,7 @@ const customTheme = [queryCampUITheme, syntaxHighlighting(queryCampSyntax)];
 
 export default function ResponsePane() {
   const { response, endpointUrl } = useEditor();
-  const isError = response.status !== 200 && response.status !== null;
+  const isError = response.status !== 200 && response.status !== 101 && response.status !== null;
   const statusColor = isError ? '#F43F5E' : 'var(--color-cta)';
   const statusBg = isError ? '#F43F5E20' : '#1ea95020';
   
@@ -68,8 +68,27 @@ export default function ResponsePane() {
   useEffect(() => {
     let isMounted = true;
     
+    // For WebSockets, we rely on the executeQuery response status (101) to know if it's connected,
+    // or if the GraphQL client actively tells us it failed (500).
+    // We only poll for HTTP endpoints.
+    if (endpointUrl?.trim().startsWith('ws://') || endpointUrl?.trim().startsWith('wss://')) {
+        if (response.status === 101) {
+            setIsConnected(true);
+        } else if (response.status === 500 && response.error?.includes('WebSocket')) {
+            setIsConnected(false);
+        } else {
+            // Unknown or waiting state
+            setIsConnected(null);
+        }
+        return;
+    }
+    
     const checkConnection = async () => {
-      if (!endpointUrl) return;
+      if (!endpointUrl?.trim()) {
+        if (isMounted) setIsConnected(null);
+        return;
+      }
+      
       try {
         await fetch(endpointUrl, { method: 'GET' });
         if (isMounted) setIsConnected(true);
@@ -88,7 +107,7 @@ export default function ResponsePane() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [endpointUrl]);
+  }, [endpointUrl, response.status, response.error]);
 
   const handleDownload = () => {
     if (!formattedResponse) return;
