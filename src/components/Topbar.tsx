@@ -25,12 +25,13 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
       // e.metaKey ensures this also works with Cmd + Enter on macOS!
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault(); // Prevents any default browser behavior
+        e.stopPropagation(); // Prevents event from bubbling down to CodeMirror
         handleRunClick();
       }
     };
 
-    // Attach the listener to the window
-    window.addEventListener('keydown', handleKeyDown);
+    // Attach the listener to the window using capture phase
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
 
     // 3. Cleanup function to prevent memory leaks
     return () => {

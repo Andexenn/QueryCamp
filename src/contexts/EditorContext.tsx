@@ -229,16 +229,39 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const unsubscribeRef = React.useRef<(() => void) | null>(null);
+
   const executeQuery = async () => {
     if (!activeTabId) return;
     const activeTab = tabs.find(t => t.id === activeTabId);
     if (!activeTab || !activeTab.query.trim()) return;
 
+    // Unsubscribe from previous subscription if exists
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
+
     setResponse({ status: null, timeMs: null, data: null, error: null }); // Resetting state
     
-    const newResponse = await executeGraphQLQuery(endpointUrl, activeTab.query, activeTab.variables, activeTab.headers);
-    console.log(newResponse);
-    setResponse(newResponse);
+    const newResponse = await executeGraphQLQuery(
+      endpointUrl, 
+      activeTab.query, 
+      activeTab.variables, 
+      activeTab.headers,
+      (streamingResponse) => {
+        setResponse(streamingResponse);
+      }
+    );
+    
+    if (typeof newResponse === 'function') {
+      // It's a cleanup/unsubscribe function from a WebSocket
+      unsubscribeRef.current = newResponse;
+      // We don't set a final response yet, the onMessage handler will do that
+    } else {
+      console.log(newResponse);
+      setResponse(newResponse);
+    }
   };
 
   const createSchemaVersion = (name: string) => {
