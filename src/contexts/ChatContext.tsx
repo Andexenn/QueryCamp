@@ -16,6 +16,7 @@ interface ChatContextType {
   setActiveSessionId: (id: string) => void;
   deleteSession: (id: string) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
+  stopGeneration: () => void;
   initEngineIfMissing: () => Promise<void>;
 }
 
@@ -67,6 +68,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsEngineLoading(false);
     }
+  };
+
+  const stopGeneration = () => {
+    llmService.abortChat();
+    setIsGenerating(false);
   };
 
   const createNewSession = async () => {
@@ -159,8 +165,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       // Save final chat state
       await chatStorage.updateSession(localSession);
       
-    } catch (e) {
+    } catch (e: any) {
       console.error("Chat error:", e);
+      // Skip appending error if it's an abort
+      if (e?.message?.toLowerCase().includes('abort') || e?.message?.toLowerCase().includes('interrupt')) {
+          return;
+      }
       // Append error message to chat
       const errorMsg: ChatMessage = {
         id: crypto.randomUUID(),
@@ -194,6 +204,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setActiveSessionId,
       deleteSession,
       sendMessage,
+      stopGeneration,
       initEngineIfMissing
     }}>
       {children}

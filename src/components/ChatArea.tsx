@@ -9,7 +9,8 @@ export default function ChatArea() {
     isEngineReady, 
     isEngineLoading, 
     engineProgressText, 
-    initEngineIfMissing 
+    initEngineIfMissing,
+    stopGeneration
   } = useChat();
   
   const [inputText, setInputText] = useState('');
@@ -93,6 +94,29 @@ export default function ChatArea() {
           </div>
         ))}
 
+        {isGenerating && activeSession?.messages[activeSession.messages.length - 1]?.role === 'user' && (
+          <div style={{ marginBottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+             <div className="flex items-center gap-sm" style={{ fontSize: '11px', color: 'var(--color-cta)', marginBottom: '8px', fontWeight: 600, letterSpacing: '1px' }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--color-cta)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                QUERYCAMP AI
+              </div>
+              <div style={{ 
+                background: 'var(--color-primary)', 
+                border: '1px solid var(--color-border)',
+                padding: '24px', 
+                borderRadius: '16px 16px 16px 0', 
+                maxWidth: '85%',
+                lineHeight: 1.6,
+                fontSize: '15px',
+                color: 'var(--color-text-muted)',
+              }}>
+                <span className="animate-pulse">I'm thinking, wait a minute...</span>
+              </div>
+          </div>
+        )}
+
         {!activeSession || activeSession.messages.length === 0 ? (
           <div style={{ textAlign: 'center', marginTop: '40px', color: 'var(--color-text-muted)', fontSize: '14px' }}>
              Send a message to start a new conversation.
@@ -135,14 +159,24 @@ export default function ChatArea() {
                 flex: 1, background: 'transparent', border: 'none', color: 'white', outline: 'none', fontSize: '15px'
               }} 
             />
-            <button 
-              className="btn-primary" 
-              onClick={handleSend}
-              disabled={isGenerating || !isEngineReady || !inputText.trim()}
-              style={{ padding: '12px 24px', letterSpacing: '0.5px' }}
-            >
-              SEND <span style={{ marginLeft: '4px' }}>➤</span>
-            </button>
+            {isGenerating ? (
+              <button 
+                className="btn-primary" 
+                onClick={stopGeneration}
+                style={{ padding: '12px 24px', letterSpacing: '0.5px', background: '#F43F5E', color: 'white', borderColor: '#F43F5E' }}
+              >
+                STOP <span style={{ marginLeft: '4px', fontSize: '12px' }}>◼</span>
+              </button>
+            ) : (
+              <button 
+                className="btn-primary" 
+                onClick={handleSend}
+                disabled={!isEngineReady || !inputText.trim()}
+                style={{ padding: '12px 24px', letterSpacing: '0.5px' }}
+              >
+                SEND <span style={{ marginLeft: '4px' }}>➤</span>
+              </button>
+            )}
          </div>
          
          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: 'var(--color-text-muted)', letterSpacing: '0.5px' }}>

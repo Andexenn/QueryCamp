@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useEditor } from '../contexts/EditorContext';
 import { FiLink, FiPlay } from 'react-icons/fi';
 import myLogo from '/favicon_io/favicon-32x32.png';
@@ -19,6 +19,11 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
     }
   }, [onRunQuery, endpointUrl, executeQuery]);
 
+  const handleRunClickRef = useRef(handleRunClick);
+  useEffect(() => {
+    handleRunClickRef.current = handleRunClick;
+  }, [handleRunClick]);
+
   // 2. Add the keyboard event listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -27,7 +32,7 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
         if (e.repeat) return; // Prevent key repeat locking the UI!
         e.preventDefault(); // Prevents any default browser behavior
         e.stopPropagation(); // Prevents event from bubbling down to CodeMirror
-        handleRunClick();
+        handleRunClickRef.current();
       }
     };
 
@@ -36,9 +41,9 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
 
     // 3. Cleanup function to prevent memory leaks
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
     };
-  }, [handleRunClick]); // Re-run effect only if handleRunClick changes
+  }, []); // Empty dependency array, setting up event listener only once
 
   return (
     <header style={{

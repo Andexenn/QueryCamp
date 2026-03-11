@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import {FiRefreshCw, FiDatabase, FiPlus, FiX} from 'react-icons/fi';
+import { FiDatabase, FiPlus, FiX, FiZap, FiActivity } from 'react-icons/fi';
 import { useEditor } from '../contexts/EditorContext';
 
 export default function HomeSidebar() {
@@ -79,9 +79,6 @@ export default function HomeSidebar() {
     }}>
       <div className="flex items-center justify-between" style={{ padding: '16px 24px' }}>
         <h3 style={{ fontSize: '13px', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>Documentation</h3>
-        <button className="btn-icon" style={{ padding: '4px' }}>
-          <FiRefreshCw />
-        </button>
       </div>
 
       <div style={{ padding: '0 16px 16px' }}>
@@ -135,7 +132,7 @@ export default function HomeSidebar() {
         <div style={{ marginBottom: '16px' }}>
           <div onClick={() => toggleCategory('Mutations')} className="flex items-center gap-sm group" style={{ padding: '8px 0', cursor: 'pointer', color: 'var(--color-text)' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expandedCategories['Mutations'] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}><polyline points="9 18 15 12 9 6"/></svg>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" strokeWidth="2" style={{ marginRight: '4px' }}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <FiZap size={14} color="#F43F5E" style={{ marginRight: '4px' }} />
             <strong style={{ fontSize: '14px', fontWeight: 600, flex: 1 }}>Mutations</strong>
             <button className="opacity-0 group-hover:opacity-100 btn-icon p-1 transition-opacity" onClick={(e) => { e.stopPropagation(); addTab('Mutations'); }}>
               <FiPlus size={14} />
@@ -166,7 +163,7 @@ export default function HomeSidebar() {
         <div style={{ marginBottom: '16px' }}>
           <div onClick={() => toggleCategory('Subscriptions')} className="flex items-center gap-sm group" style={{ padding: '8px 0', cursor: 'pointer', color: 'var(--color-text)' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expandedCategories['Subscriptions'] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}><polyline points="9 18 15 12 9 6"/></svg>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" style={{ marginRight: '4px' }}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <FiActivity size={14} color="#3B82F6" style={{ marginRight: '4px' }} />
             <strong style={{ fontSize: '14px', fontWeight: 600, flex: 1 }}>Subscriptions</strong>
             <button className="opacity-0 group-hover:opacity-100 btn-icon p-1 transition-opacity" onClick={(e) => { e.stopPropagation(); addTab('Subscriptions'); }}>
               <FiPlus size={14} />
