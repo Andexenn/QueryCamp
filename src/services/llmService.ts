@@ -36,6 +36,12 @@ class LLMService {
     return this.isReady;
   }
 
+  abortChat() {
+    if (this.engine && this.isReady) {
+      this.engine.interruptGenerate();
+    }
+  }
+
   async chat(messages: { role: 'user' | 'assistant', content: string }[], onChunk?: ProgressCallback): Promise<string> {
     if (!this.engine || !this.isReady) {
       throw new Error("Engine is not initialized yet.");

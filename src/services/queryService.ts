@@ -9,7 +9,7 @@ export async function executeGraphQLQuery(
   customHeaders: string,
   onMessage?: (response: ApiResponse) => void
 ): Promise<ApiResponse | (() => void)> {
-  const startTime = performance.now();
+  let startTime = performance.now();
 
   try {
     endpointUrl = endpointUrl.trim();
@@ -67,6 +67,7 @@ export async function executeGraphQLQuery(
         }
       });
 
+      startTime = performance.now();
       const unsubscribe = client.subscribe(
         {
           query: query,
@@ -121,6 +122,7 @@ export async function executeGraphQLQuery(
     }
 
     // --- HTTP Logic ---
+    startTime = performance.now();
     const res = await fetch(endpointUrl, {
       method: 'POST',
       headers: {
