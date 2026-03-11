@@ -1,4 +1,5 @@
 import { useChat } from '../contexts/ChatContext';
+import QueryCampLogo from '/favicon_io/favicon-32x32.png';
 
 export default function ChatSidebar() {
   const { sessions, activeSessionId, setActiveSessionId, createNewSession } = useChat();
@@ -16,14 +17,13 @@ export default function ChatSidebar() {
         <div style={{
           width: '36px',
           height: '36px',
-          backgroundColor: 'var(--color-cta)',
           borderRadius: '8px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: 'var(--color-primary)'
         }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <img src={QueryCampLogo} alt="QueryCamp Logo" />
         </div>
         <div>
           <h2 style={{ fontSize: '18px', margin: 0, fontWeight: 700 }}>QueryCamp AI</h2>

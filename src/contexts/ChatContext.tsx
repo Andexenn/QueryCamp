@@ -99,18 +99,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     };
     
     let updatedSession: ChatSession | undefined;
-
-    setSessions(prev => prev.map(s => {
-      if (s.id === activeSessionId) {
-        updatedSession = { ...s, messages: [...s.messages, userMsg], updatedAt: Date.now() };
-        // Auto-title if it's the first message and title is "New Chat"
-        if (updatedSession.messages.length === 1 && s.title === 'New Chat') {
-           updatedSession.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
-        }
-        return updatedSession;
+    const currentSession = sessions.find(s => s.id === activeSessionId);
+    
+    if (currentSession) {
+      updatedSession = { 
+        ...currentSession, 
+        messages: [...currentSession.messages, userMsg], 
+        updatedAt: Date.now() 
+      };
+      
+      // Auto-title if it's the first message and title is "New Chat"
+      if (updatedSession.messages.length === 1 && currentSession.title === 'New Chat') {
+         updatedSession.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
       }
-      return s;
-    }));
+      
+      setSessions(prev => prev.map(s => s.id === activeSessionId ? updatedSession! : s));
+    }
 
     if (updatedSession) {
       await chatStorage.updateSession(updatedSession);
