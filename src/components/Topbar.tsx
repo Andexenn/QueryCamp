@@ -24,6 +24,7 @@ export default function Topbar({ onRunQuery }: TopbarProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       // e.metaKey ensures this also works with Cmd + Enter on macOS!
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        if (e.repeat) return; // Prevent key repeat locking the UI!
         e.preventDefault(); // Prevents any default browser behavior
         e.stopPropagation(); // Prevents event from bubbling down to CodeMirror
         handleRunClick();

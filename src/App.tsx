@@ -7,22 +7,19 @@ function App() {
 
   return (
     <>
-      <div className="fixed bottom-10 right-5 z-[9999] bg-[var(--color-primary)] p-2.5 rounded-lg border border-[var(--color-border)] shadow-[var(--shadow-lg)] flex gap-2.5">
-        <button 
-          className={`btn-secondary px-4 py-2 text-sm ${currentPage === 'home' ? 'bg-[var(--color-secondary)]' : 'bg-transparent'}`}
-          onClick={() => setCurrentPage('home')}
-        >
-          IDE View
-        </button>
-        <button 
-          className={`btn-secondary px-4 py-2 text-sm ${currentPage === 'chatbot' ? 'bg-[var(--color-secondary)]' : 'bg-transparent'}`}
-          onClick={() => setCurrentPage('chatbot')}
-        >
-          Chat View
-        </button>
-      </div>
+      {currentPage === 'home' && (
+        <div className="fixed bottom-10 right-5 z-[9999]">
+          <button 
+            className="btn-primary px-4 py-2 text-sm shadow-[var(--shadow-lg)] flex items-center gap-2"
+            onClick={() => setCurrentPage('chatbot')}
+          >
+            Chat View
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      )}
 
-      {currentPage === 'home' ? <Home /> : <Chatbot />}
+      {currentPage === 'home' ? <Home /> : <Chatbot onNavigate={() => setCurrentPage('home')} />}
     </>
   );
 }

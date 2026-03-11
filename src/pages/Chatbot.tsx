@@ -2,7 +2,11 @@ import ChatSidebar from '../components/ChatSidebar';
 import ChatArea from '../components/ChatArea';
 import { ChatProvider } from '../contexts/ChatContext';
 
-export default function Chatbot() {
+interface ChatbotProps {
+  onNavigate?: () => void;
+}
+
+export default function Chatbot({ onNavigate }: ChatbotProps) {
   return (
     <ChatProvider>
       <div style={{
@@ -13,7 +17,7 @@ export default function Chatbot() {
         backgroundColor: 'var(--color-background)',
         color: 'var(--color-text)'
       }}>
-        <ChatSidebar />
+        <ChatSidebar onNavigate={onNavigate} />
         <ChatArea />
       </div>
     </ChatProvider>

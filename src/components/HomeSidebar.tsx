@@ -9,8 +9,7 @@ export default function HomeSidebar() {
   const [expandedCategories, setExpandedCategories] = useState<{ [key: string]: boolean }>({
     Queries: true,
     Mutations: true,
-    Subscriptions: true,
-    Types: true
+    Subscriptions: true
   });
 
   const [searchText, setSearchText] = useState('');
@@ -192,38 +191,7 @@ export default function HomeSidebar() {
             ))}
           </div>
           )}
-        </div>
-
-        {/* Types */}
-        <div style={{ marginBottom: '16px' }}>
-          <div onClick={() => toggleCategory('Types')} className="flex items-center gap-sm group" style={{ padding: '8px 0', cursor: 'pointer', color: 'var(--color-text)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expandedCategories['Types'] ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}><polyline points="9 18 15 12 9 6"/></svg>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" style={{ marginRight: '4px' }}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-            <strong style={{ fontSize: '14px', fontWeight: 600, flex: 1 }}>Types</strong>
-            <button className="opacity-0 group-hover:opacity-100 btn-icon p-1 transition-opacity" onClick={(e) => { e.stopPropagation(); addTab('Types'); }}>
-              <FiPlus size={14} />
-            </button>
-          </div>
-          {expandedCategories['Types'] && (
-          <div style={{ paddingLeft: '28px', borderLeft: '1px solid var(--color-secondary)', marginLeft: '6px', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {filteredTabs.filter(t => t.category === 'Types').map(tab => (
-              <div 
-                key={tab.id} 
-                onContextMenu={(e) => handleContextMenu(e, tab.id)}
-                style={{ 
-                  fontSize: '13px', 
-                  cursor: 'pointer',
-                  color: activeTabId === tab.id ? 'var(--color-cta)' : 'var(--color-text-muted)',
-                  fontWeight: activeTabId === tab.id ? 600 : 400
-                }}
-                onClick={() => { setActiveTabId(tab.id); updateTab(tab.id, { isOpen: true }); }}
-              >
-                {tab.name}
-              </div>
-            ))}
-          </div>
-          )}
-        </div>
+      </div>
       </div>
 
       <div style={{ padding: '16px', borderTop: '1px solid var(--color-border)' }}>

@@ -51,12 +51,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       return;
     }
     
+    if (isEngineLoading) return; // Prevent duplicate concurrent initializations
+    
     setIsEngineLoading(true);
     try {
       await llmService.initEngine((_, text) => {
         setEngineProgressText(text);
       });
-      setIsEngineReady(true);
+      if (llmService.isEngineReady()) { 
+        setIsEngineReady(true);
+      }
     } catch (e) {
       console.error(e);
       setEngineProgressText("Failed to load AI Model");
