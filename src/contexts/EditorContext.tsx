@@ -27,25 +27,25 @@ interface EditorContextType {
 // 2. Default Initial Data
 const generateId = () => crypto.randomUUID();
 
-export const DEFAULT_SCHEMA_VERSION: SchemaVersion = { id: 'v2.4.1', name: 'v2.4.1' };
+export const DEFAULT_SCHEMA_VERSION: SchemaVersion = { id: 'v1.0.0', name: 'v1.0.0' };
 
 export const DEFAULT_TABS: TabData[] = [
   {
     id: generateId(),
-    name: 'GetUserData.graphql',
+    name: 'GetUsers.graphql',
     category: 'Queries',
-    query: `query GetUserData($id: ID!) {\n  user(id: $id) {\n    id\n    username\n    email\n    posts {\n      title\n      content\n      createdAt\n    }\n  }\n}`,
-    variables: `{\n  "id": "usr_982347102"\n}`,
+    query: `query GetUsers {\n  getUsers {\n    id\n    age\n    isMarried\n    name\n  }\n}`,
+    variables: `{}`,
     headers: `{\n  \n}`,
     isOpen: true,
     schemaVersionId: DEFAULT_SCHEMA_VERSION.id
   },
   {
     id: generateId(),
-    name: 'UpdateProfile.graphql',
+    name: 'CreateUser.graphql',
     category: 'Mutations',
-    query: `mutation UpdateProfile($input: ProfileInput!) {\n  updateProfile(input: $input) {\n    id\n    username\n    updatedAt\n  }\n}`,
-    variables: `{\n  "input": {\n    "username": "new_name"\n  }\n}`,
+    query: `mutation createUser($user: AddUserInput!) {\n  createUser(user: $user) {\n    id\n    name\n    age\n  }\n}`,
+    variables: `{\n  "user": {\n    "age": 12,\n    "name": "ryan",\n    "isMarried": true\n  }\n}`,
     headers: `{\n  \n}`,
     isOpen: true,
     schemaVersionId: DEFAULT_SCHEMA_VERSION.id
